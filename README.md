@@ -6,53 +6,16 @@
 
 ---
 
-## Developer setup
-
-**Prerequisites:** Node.js 20+ · ffmpeg (optional, for stitching & muxing)
-
-```bash
-# Clone the repo
-git clone https://github.com/gizmoGremlin/VoiceAi-voiceover-creator.git
-cd VoiceAi-voiceover-creator
-
-# Install dependencies
-npm install
-
-# Build TypeScript
-npm run build
-
-# Register the voiceai-vo CLI command
-npm link
-```
-
-### Set your API key
-
-```bash
-echo 'VOICE_AI_API_KEY=your-key-here' > .env
-```
-
-Get your key at [voice.ai/dashboard](https://voice.ai/dashboard).
-
-### FFmpeg (optional but recommended)
-
-```bash
-# macOS
-brew install ffmpeg
-
-# Ubuntu / Debian
-sudo apt install ffmpeg
-
-# Windows
-choco install ffmpeg
-```
-
----
-
 ## Quick start
 
+No install needed — just Node.js 20+ and the bundled CLI file.
+
 ```bash
-# Script + video → finished video with AI voiceover (the one-command workflow)
-voiceai-vo build \
+# Set your API key
+echo 'VOICE_AI_API_KEY=your-key-here' > .env
+
+# Script + video → finished video with AI voiceover
+node voiceai-vo.cjs build \
   --input my-script.md \
   --voice oliver \
   --title "My Video" \
@@ -60,17 +23,16 @@ voiceai-vo build \
   --mux
 
 # Or just build the voiceover (no video)
-voiceai-vo build --input examples/youtube_script.md --voice ellie --title "My Video"
+node voiceai-vo.cjs build --input examples/youtube_script.md --voice ellie --title "My Video"
 
 # List available voices
-voiceai-vo voices
+node voiceai-vo.cjs voices
 
 # Test without an API key
-voiceai-vo build --input examples/youtube_script.md --voice ellie --title "My Video" --mock
-
-# Replace audio on a video separately
-voiceai-vo replace-audio --video input.mp4 --audio out/my-video/master.wav
+node voiceai-vo.cjs build --input examples/youtube_script.md --voice ellie --title "My Video" --mock
 ```
+
+Get your API key at [voice.ai/dashboard](https://voice.ai/dashboard).
 
 ## What it produces
 
@@ -87,13 +49,38 @@ out/<title>/
   timeline.json    # Segment timing
 ```
 
-## Development
+## Developer setup
+
+To modify the source code:
 
 ```bash
-npm run dev        # Watch mode (tsc --watch)
-npm run test       # Run tests (vitest)
-npm run lint       # Lint (eslint)
-npm run format     # Format (prettier)
+git clone https://github.com/gizmoGremlin/VoiceAi-voiceover-creator.git
+cd VoiceAi-voiceover-creator
+
+# Install dev dependencies
+npm install
+
+# Build TypeScript
+npm run build
+
+# Re-bundle the CLI
+npx esbuild src/cli.ts --bundle --platform=node --target=node20 --format=cjs --outfile=voiceai-vo.cjs
+
+# Run tests
+npm test
+```
+
+### FFmpeg (optional but recommended)
+
+```bash
+# macOS
+brew install ffmpeg
+
+# Ubuntu / Debian
+sudo apt install ffmpeg
+
+# Windows
+choco install ffmpeg
 ```
 
 ## Learn more

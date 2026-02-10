@@ -95,8 +95,8 @@ export async function buildCommand(opts: BuildOptions): Promise<void> {
   const outputDir = opts.out ? resolve(opts.out) : resolve('out', titleSlug);
   await ensureDir(outputDir);
 
-  // Template directory (look for templates/ relative to package root)
-  const templateDir = resolve(dirname(new URL(import.meta.url).pathname), '..', '..', 'templates');
+  // Template directory (look for templates/ relative to cwd, or fallback to script location)
+  const templateDir = resolve(process.cwd(), 'templates');
 
   // ── Print header ──────────────────────────────────────────────────
   console.log(chalk.bold('\n╔══════════════════════════════════════════════════╗'));

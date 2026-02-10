@@ -1,6 +1,6 @@
 {
   "name": "voiceai-creator-voiceover-pipeline",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "Turn scripts into publishable voiceovers with Voice.ai TTS — creator-grade pipeline with segments, chapters, captions, and video muxing via ffmpeg.",
   "type": "module",
   "bin": {
@@ -38,6 +38,7 @@
   },
   "devDependencies": {
     "@types/node": "^20.17.0",
+    "esbuild": "^0.27.3",
     "eslint": "^9.14.0",
     "prettier": "^3.4.0",
     "typescript": "^5.6.0",

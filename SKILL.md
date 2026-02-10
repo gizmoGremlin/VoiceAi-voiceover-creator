@@ -1,10 +1,10 @@
 ---
 name: voiceai-creator-voiceover-pipeline
 description: "Turn scripts into publishable voiceovers with Voice.ai TTS, including segments, chapters, captions, and video muxing."
-version: 0.1.1
+version: 0.2.0
 env:
   - VOICE_AI_API_KEY
-setup: "npm install && npm run build && npm link"
+setup: "none — single file, runs directly with Node.js"
 runtime: "node>=20"
 optional_deps: "ffmpeg"
 ---
@@ -37,7 +37,7 @@ Built for creators who want studio-quality voiceovers without the studio. Powere
 Have a script and a video? Turn them into a finished video with AI voiceover in one shot:
 
 ```bash
-voiceai-vo build \
+node voiceai-vo.cjs build \
   --input my-script.md \
   --voice oliver \
   --title "My Video" \
@@ -59,7 +59,7 @@ Use `--sync pad` if the audio is shorter than the video, or `--sync trim` to cut
 
 ## Requirements
 
-- **Node.js 20+** — runtime
+- **Node.js 20+** — runtime (no npm install needed — the CLI is a single bundled file)
 - **VOICE_AI_API_KEY** — set as environment variable or in a `.env` file in the skill root. Get a key at [voice.ai/dashboard](https://voice.ai/dashboard).
 - **ffmpeg** (optional) — needed for master stitching, MP3 encoding, loudness normalization, and video muxing. The pipeline still produces individual segments, the review page, chapters, and captions without it.
 
@@ -83,12 +83,10 @@ Use `--mock` on any command to run the full pipeline without an API key (produce
 
 ## Commands
 
-All commands use the `voiceai-vo` CLI. If dependencies are not yet installed, run `npm install && npm run build && npm link` in the skill root first.
-
 ### `build` — Generate a voiceover from a script
 
 ```bash
-voiceai-vo build \
+node voiceai-vo.cjs build \
   --input <script.md or script.txt> \
   --voice <voice-alias-or-uuid> \
   --title "My Project" \
@@ -128,7 +126,7 @@ voiceai-vo build \
 ### `replace-audio` — Swap the audio track on a video
 
 ```bash
-voiceai-vo replace-audio \
+node voiceai-vo.cjs replace-audio \
   --video ./input.mp4 \
   --audio ./out/my-project/master.wav \
   [--out ./out/my-project/muxed.mp4] \
@@ -150,7 +148,7 @@ Video stream is copied without re-encoding (`-c:v copy`). Audio is encoded as AA
 ### `voices` — List available voices
 
 ```bash
-voiceai-vo voices [--limit 20] [--query "deep"] [--mock]
+node voiceai-vo.cjs voices [--limit 20] [--query "deep"] [--mock]
 ```
 
 ---
@@ -177,7 +175,7 @@ The `voices` command also returns any additional voices available on the API. Vo
 
 ## Build outputs
 
-After `voiceai-vo build`, the output directory contains:
+After a build, the output directory contains:
 
 ```
 out/<title-slug>/
