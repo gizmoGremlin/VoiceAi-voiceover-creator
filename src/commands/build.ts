@@ -4,7 +4,7 @@
  */
 import { resolve, extname, dirname, join } from 'node:path';
 import chalk from 'chalk';
-import { VoiceAIClient } from '../api.js';
+import { VoiceAIClient, getApiKey, resolveVoiceId } from '../api.js';
 import { chunkScript, type ChunkMode, type TemplateName } from '../chunking.js';
 import { renderSegments } from '../render.js';
 import {
@@ -59,21 +59,23 @@ export async function buildCommand(opts: BuildOptions): Promise<void> {
     process.exit(1);
   }
 
-  const voiceId = opts.voice;
-  if (!voiceId) {
+  const rawVoice = opts.voice;
+  if (!rawVoice) {
     console.error(chalk.red('✗ --voice is required. Run `voiceai-vo voices` to see options.'));
     process.exit(1);
   }
+  // Resolve alias ("ellie") or pass through UUID
+  const voiceId = resolveVoiceId(rawVoice);
 
   const isMock = opts.mock ?? false;
 
   // API key check (only when not in mock mode)
-  const apiKey = process.env.VOICEAI_API_KEY;
+  const apiKey = getApiKey();
   if (!isMock && !apiKey) {
     console.error(
-      chalk.red('✗ VOICEAI_API_KEY not set.\n') +
+      chalk.red('✗ VOICE_AI_API_KEY not set.\n') +
         chalk.yellow('  Set it in .env or your environment, or use --mock for testing.\n') +
-        chalk.gray('  See .env.example for details.'),
+        chalk.gray('  Get your key at https://voice.ai/dashboard'),
     );
     process.exit(1);
   }

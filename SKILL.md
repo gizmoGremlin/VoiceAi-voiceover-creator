@@ -26,7 +26,7 @@ compatibility:
 
 Turn any script into a **publish-ready voiceover** — complete with numbered segments, a stitched master, YouTube chapters, SRT captions, and a beautiful review page. Optionally, replace the audio track on an existing video.
 
-Built to make [Voice.ai](https://voice.ai) look incredible to creators.
+Built for creators who want studio-quality voiceovers without the studio. Powered by [Voice.ai](https://voice.ai).
 
 ---
 
@@ -43,282 +43,197 @@ Built to make [Voice.ai](https://voice.ai) look incredible to creators.
 
 ---
 
-## Install
+## Requirements
 
-**Prerequisites:** Node.js 20+ · ffmpeg (optional, for stitching & muxing)
-
-```bash
-# Clone the repo
-git clone <repo-url> voiceai-creator-voiceover-pipeline
-cd voiceai-creator-voiceover-pipeline
-
-# Install dependencies
-npm install
-
-# Build TypeScript
-npm run build
-
-# (Optional) Link globally
-npm link
-```
-
-### FFmpeg (optional but recommended)
-
-```bash
-# macOS
-brew install ffmpeg
-
-# Ubuntu/Debian
-sudo apt install ffmpeg
-
-# Windows
-choco install ffmpeg
-```
-
-Without ffmpeg, the pipeline still produces individual segments, the review page, chapters, and captions. Master stitching and video muxing require ffmpeg.
+- **Node.js 20+** — runtime
+- **VOICE_AI_API_KEY** — set as environment variable or in a `.env` file in the skill root. Get a key at [voice.ai/dashboard](https://voice.ai/dashboard).
+- **ffmpeg** (optional) — needed for master stitching, MP3 encoding, loudness normalization, and video muxing. The pipeline still produces individual segments, the review page, chapters, and captions without it.
 
 ---
 
-## Quickstart
+## Configuration
 
-### 1. List available voices
+The skill reads `VOICE_AI_API_KEY` from (in order):
 
-```bash
-voiceai-vo voices --mock
-```
-
-### 2. Build a voiceover from the example YouTube script
+1. Environment variable `VOICE_AI_API_KEY`
+2. Environment variable `VOICEAI_API_KEY` (alternate)
+3. `.env` file in the skill root
 
 ```bash
-voiceai-vo build \
-  --input examples/youtube_script.md \
-  --voice v-warm-narrator \
-  --title "AI Voiceovers" \
-  --template youtube \
-  --mock
+echo 'VOICE_AI_API_KEY=your-key-here' > .env
 ```
 
-### 3. Build a podcast voiceover
+Use `--mock` on any command to run the full pipeline without an API key (produces placeholder audio).
 
-```bash
-voiceai-vo build \
-  --input examples/podcast_script.md \
-  --voice v-podcast-casual \
-  --title "Creator Stack Ep1" \
-  --template podcast \
-  --mock
-```
+---
 
-### 4. Build a short-form hook
+## Commands
+
+All commands use the `voiceai-vo` CLI. If dependencies are not yet installed, run `npm install && npm run build && npm link` in the skill root first.
+
+### `build` — Generate a voiceover from a script
 
 ```bash
 voiceai-vo build \
-  --input examples/shorts_script.txt \
-  --voice v-energetic-host \
-  --title "Stop Recording" \
-  --template shortform \
-  --mock
+  --input <script.md or script.txt> \
+  --voice <voice-alias-or-uuid> \
+  --title "My Project" \
+  [--template youtube|podcast|shortform] \
+  [--language en] \
+  [--video input.mp4 --mux --sync shortest] \
+  [--force] [--mock]
 ```
 
-### 5. Replace audio on an existing video
+**What it does:**
+
+1. Reads the script and splits it into segments (by `##` headings for `.md`, or by sentence boundaries for `.txt`)
+2. Optionally prepends/appends template intro/outro segments
+3. Renders each segment via Voice.ai TTS as a numbered WAV file
+4. Stitches a master audio file (if ffmpeg is available)
+5. Generates chapters, captions, a review page, and metadata files
+6. Optionally muxes the voiceover into an existing video
+
+**Full options:**
+
+| Option | Description |
+|---|---|
+| `-i, --input <path>` | Script file (.txt or .md) — **required** |
+| `-v, --voice <id>` | Voice alias or UUID — **required** |
+| `-t, --title <title>` | Project title (defaults to filename) |
+| `--template <name>` | `youtube`, `podcast`, or `shortform` |
+| `--mode <mode>` | `headings` or `auto` (default: headings for .md) |
+| `--max-chars <n>` | Max characters per auto-chunk (default: 1500) |
+| `--language <code>` | Language code (default: en) |
+| `--video <path>` | Input video for muxing |
+| `--mux` | Enable video muxing (requires --video) |
+| `--sync <policy>` | `shortest`, `pad`, or `trim` (default: shortest) |
+| `--force` | Re-render all segments (ignore cache) |
+| `--mock` | Mock mode — no API calls, placeholder audio |
+| `-o, --out <dir>` | Custom output directory |
+
+### `replace-audio` — Swap the audio track on a video
 
 ```bash
 voiceai-vo replace-audio \
-  --video ./my-screencast.mp4 \
-  --audio ./out/ai-voiceovers/master.wav \
-  --sync shortest
+  --video ./input.mp4 \
+  --audio ./out/my-project/master.wav \
+  [--out ./out/my-project/muxed.mp4] \
+  [--sync shortest|pad|trim]
 ```
 
-> **Tip:** Use `--mock` for testing. It runs the full pipeline with placeholder audio — no API key needed.
+Requires ffmpeg. If not installed, generates helper shell/PowerShell scripts instead.
+
+| Sync policy | Behavior |
+|---|---|
+| `shortest` (default) | Output ends when the shorter track ends |
+| `pad` | Pad audio with silence to match video duration |
+| `trim` | Trim audio to match video duration |
+
+Video stream is copied without re-encoding (`-c:v copy`). Audio is encoded as AAC. A mux report is saved alongside the output.
+
+**Privacy:** Video processing is entirely local. Only script text is sent to Voice.ai for TTS.
+
+### `voices` — List available voices
+
+```bash
+voiceai-vo voices [--limit 20] [--query "deep"] [--mock]
+```
 
 ---
 
-## Voice selection
+## Available voices
 
-```bash
-# List all voices
-voiceai-vo voices --mock
+Use short aliases or full UUIDs with `--voice`:
 
-# Search by keyword
-voiceai-vo voices --mock --query "narrator"
-voiceai-vo voices --mock --query "podcast"
+| Alias    | Voice                | Gender | Style                    |
+|----------|----------------------|--------|--------------------------|
+| `ellie`  | Ellie                | F      | Youthful, vibrant vlogger|
+| `oliver` | Oliver               | M      | Friendly British         |
+| `lilith` | Lilith               | F      | Soft, feminine           |
+| `smooth` | Smooth Calm Voice    | M      | Deep, smooth narrator    |
+| `corpse` | Corpse Husband       | M      | Deep, distinctive        |
+| `skadi`  | Skadi                | F      | Anime character          |
+| `zhongli`| Zhongli              | M      | Deep, authoritative      |
+| `flora`  | Flora                | F      | Cheerful, high pitch     |
+| `chief`  | Master Chief         | M      | Heroic, commanding       |
 
-# Limit results
-voiceai-vo voices --mock --limit 5
-```
-
-The voice list is cached locally for 10 minutes to avoid repeated API calls.
+The `voices` command also returns any additional voices available on the API. Voice list is cached for 10 minutes.
 
 ---
 
 ## Build outputs
 
-After `voiceai-vo build`, you'll find:
+After `voiceai-vo build`, the output directory contains:
 
 ```
 out/<title-slug>/
   segments/           # Numbered WAV files (001-intro.wav, 002-section.wav, …)
   master.wav          # Stitched audio (requires ffmpeg)
   master.mp3          # MP3 encode (requires ffmpeg)
-  manifest.json       # Build metadata, segment list, hashes
+  manifest.json       # Build metadata: voice, template, segment list, hashes
   timeline.json       # Segment durations and start times
-  review.html         # 🔥 Beautiful review page with audio players
+  review.html         # Interactive review page with audio players
   chapters.txt        # YouTube-friendly chapter timestamps
   captions.srt        # SRT captions using segment boundaries
-  description.txt     # YouTube description with chapters + CTA
+  description.txt     # YouTube description with chapters + Voice.ai credit
 ```
 
-### Review page
+### review.html
 
-Open `review.html` in your browser. It includes:
+A standalone HTML page with:
 - Master audio player (if stitched)
-- Individual segment players with titles
+- Individual segment players with titles and durations
 - Collapsible script text for each segment
 - Regeneration command hints
 
 ---
 
-## Replace audio on an existing video
+## Templates
 
-The `replace-audio` command lets you swap the audio track on any MP4:
+Templates auto-inject intro/outro segments around the script content:
 
-```bash
-voiceai-vo replace-audio \
-  --video ./input.mp4 \
-  --audio ./out/my-project/master.wav \
-  --out ./out/my-project/muxed.mp4 \
-  --sync shortest
-```
+| Template | Prepends | Appends |
+|---|---|---|
+| `youtube` | `templates/youtube_intro.txt` | `templates/youtube_outro.txt` |
+| `podcast` | `templates/podcast_intro.txt` | — |
+| `shortform` | `templates/shortform_hook.txt` | — |
 
-### Sync policies
-
-| Policy | Behavior |
-|---|---|
-| `shortest` (default) | Output ends when the shorter track ends |
-| `pad` | Pad audio with silence to match video duration |
-| `trim` | Trim audio to match video duration |
-
-### How it works
-
-- Video stream is copied without re-encoding (`-c:v copy`)
-- Audio is encoded as AAC for MP4 compatibility
-- Probed durations are printed before muxing
-- A mux report (`mux_report.json`) is saved with the full ffmpeg command
-
-### Privacy note
-
-Video processing is **entirely local**. Only script text is sent to Voice.ai for TTS. Your video files never leave your machine.
-
-### Without ffmpeg
-
-If ffmpeg isn't installed, helper scripts are generated instead:
-- `ffmpeg/replace-audio.sh` (bash)
-- `ffmpeg/replace-audio.ps1` (PowerShell)
-
-Install ffmpeg, then run the appropriate script.
+Edit the files in `templates/` to customize the intro/outro text.
 
 ---
 
-## Command reference
-
-### `build`
-
-```
-voiceai-vo build [options]
-
-Options:
-  -i, --input <path>       Script file (.txt or .md)              [required]
-  -v, --voice <id>         Voice ID                               [required]
-  -t, --title <title>      Project title (defaults to filename)
-  --template <name>        youtube | podcast | shortform
-  --mode <mode>            headings | auto (default: headings for .md)
-  --max-chars <n>          Max chars per auto-chunk (default: 1500)
-  --language <code>        Language code (default: en)
-  --video <path>           Input video for muxing
-  --mux                    Enable video muxing
-  --sync <policy>          shortest | pad | trim (default: shortest)
-  --force                  Re-render all segments (ignore cache)
-  --mock                   Mock mode (no API calls)
-  -o, --out <dir>          Custom output directory
-```
-
-### `replace-audio`
-
-```
-voiceai-vo replace-audio [options]
-
-Options:
-  --video <path>           Input video file                       [required]
-  --audio <path>           Audio file to mux in                   [required]
-  --out <path>             Output video path
-  --sync <policy>          shortest | pad | trim (default: shortest)
-```
-
-### `voices`
-
-```
-voiceai-vo voices [options]
-
-Options:
-  -l, --limit <n>          Max voices to show (default: 20)
-  -q, --query <term>       Search by name or description
-  --mock                   Use mock voice catalog
-```
-
----
-
-## Caching and rebuild efficiency
+## Caching
 
 Segments are cached by a hash of: `text content + voice ID + language`.
 
-- Unchanged segments are **skipped** on rebuild
+- Unchanged segments are **skipped** on rebuild — fast iteration
 - Modified segments are **re-rendered** automatically
 - Use `--force` to re-render everything
 - Cache manifest is stored in `segments/.cache.json`
 
 ---
 
-## Templates
+## Multilingual support
 
-Templates auto-inject intro/outro segments:
+Voice.ai supports 11 languages. Use `--language <code>` to switch:
 
-| Template | Prepends | Appends |
-|---|---|---|
-| `youtube` | `youtube_intro.txt` | `youtube_outro.txt` |
-| `podcast` | `podcast_intro.txt` | — |
-| `shortform` | `shortform_hook.txt` | — |
+`en`, `es`, `fr`, `de`, `it`, `pt`, `pl`, `ru`, `nl`, `sv`, `ca`
 
-Edit files in `templates/` to customize.
+The pipeline auto-selects the multilingual TTS model for non-English languages.
 
 ---
 
 ## Troubleshooting
 
-### ffmpeg missing
-The pipeline works without ffmpeg — you just don't get master stitching or video muxing. See `references/TROUBLESHOOTING.md`.
+| Issue | Solution |
+|---|---|
+| **ffmpeg missing** | Pipeline still works — you get segments, review page, chapters, captions. Install ffmpeg for master stitching and video muxing. |
+| **Rate limits (429)** | Segments render sequentially, which stays under most limits. Wait and retry. |
+| **Insufficient credits (402)** | Top up at [voice.ai/dashboard](https://voice.ai/dashboard). Cached segments won't re-use credits on retry. |
+| **Long scripts** | Caching makes rebuilds fast. Text over 490 chars per segment is automatically split across API calls. |
+| **Windows paths** | Wrap paths with spaces in quotes: `--input "C:\My Scripts\script.md"` |
 
-### Rate limits
-Segments render sequentially, which naturally stays under most rate limits. Use `--mock` for testing.
-
-### Long scripts
-Caching makes rebuilds fast. Only changed segments are re-rendered.
-
-### Windows path quoting
-Wrap paths with spaces in quotes:
-```powershell
-voiceai-vo build --input "C:\My Scripts\script.md" --voice v-warm-narrator --mock
-```
-
----
-
-## Development
-
-```bash
-npm run dev        # Watch mode (tsc --watch)
-npm run test       # Run tests
-npm run lint       # Lint
-npm run format     # Format with Prettier
-```
+See [`references/TROUBLESHOOTING.md`](references/TROUBLESHOOTING.md) for more.
 
 ---
 
@@ -326,5 +241,5 @@ npm run format     # Format with Prettier
 
 - [Agent Skills Specification](https://agentskills.io/specification)
 - [Voice.ai](https://voice.ai)
-- [`references/VOICEAI_API.md`](references/VOICEAI_API.md) — API endpoint details and mock mode
+- [`references/VOICEAI_API.md`](references/VOICEAI_API.md) — API endpoints, audio formats, models
 - [`references/TROUBLESHOOTING.md`](references/TROUBLESHOOTING.md) — Common issues and fixes

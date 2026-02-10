@@ -2,7 +2,7 @@
  * `voiceai-vo voices` — discover available Voice.ai voices.
  */
 import chalk from 'chalk';
-import { VoiceAIClient } from '../api.js';
+import { VoiceAIClient, getApiKey } from '../api.js';
 
 /* ------------------------------------------------------------------ */
 /*  Option types                                                       */
@@ -22,16 +22,17 @@ export async function voicesCommand(opts: VoicesOptions): Promise<void> {
   const isMock = opts.mock ?? false;
 
   // API key check (only when not in mock mode)
-  const apiKey = process.env.VOICEAI_API_KEY;
+  const apiKey = getApiKey();
   if (!isMock && !apiKey) {
     console.error(
-      chalk.red('✗ VOICEAI_API_KEY not set.\n') +
-        chalk.yellow('  Set it in .env or your environment, or use --mock for testing.'),
+      chalk.red('✗ VOICE_AI_API_KEY not set.\n') +
+        chalk.yellow('  Set it in .env or your environment, or use --mock for testing.\n') +
+        chalk.gray('  Get your key at https://voice.ai/dashboard'),
     );
     process.exit(1);
   }
 
-  const client = new VoiceAIClient({ apiKey: apiKey ?? undefined, mock: isMock });
+  const client = new VoiceAIClient({ apiKey, mock: isMock });
   const limit = opts.limit ? parseInt(opts.limit, 10) : 20;
   const query = opts.query;
 
@@ -57,19 +58,18 @@ export async function voicesCommand(opts: VoicesOptions): Promise<void> {
     // Header
     console.log(
       chalk.gray(
-        `   ${'ID'.padEnd(idW)}  ${'NAME'.padEnd(nameW)}  TYPE     LANG  DESCRIPTION`,
+        `   ${'ID'.padEnd(idW)}  ${'NAME'.padEnd(nameW)}  LANG  DESCRIPTION`,
       ),
     );
-    console.log(chalk.gray(`   ${'─'.repeat(idW)}  ${'─'.repeat(nameW)}  ──────   ────  ─────────────`));
+    console.log(chalk.gray(`   ${'─'.repeat(idW)}  ${'─'.repeat(nameW)}  ────  ─────────────`));
 
     // Rows
     for (const v of voices) {
       const id = chalk.cyan(v.id.padEnd(idW));
       const name = chalk.white.bold(v.name.padEnd(nameW));
-      const type = chalk.green(v.type.padEnd(8));
       const lang = chalk.gray((v.language ?? '').padEnd(4));
-      const desc = chalk.gray(v.description ?? '');
-      console.log(`   ${id}  ${name}  ${type}  ${lang}  ${desc}`);
+      const desc = chalk.gray(v.description ?? v.style ?? '');
+      console.log(`   ${id}  ${name}  ${lang}  ${desc}`);
     }
 
     console.log(chalk.gray(`\n   Showing ${voices.length} of ${total} voices.`));

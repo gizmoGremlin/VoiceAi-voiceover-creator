@@ -6,6 +6,7 @@ import { readFile } from 'node:fs/promises';
 import chalk from 'chalk';
 import { type Segment } from './chunking.js';
 import { type VoiceAIClient, type TTSResponse } from './api.js';
+import { probeDuration } from './ffmpeg.js';
 import { zeroPad, slugify, contentHash, ensureDir, writeOutputFile, fileExists } from './utils.js';
 
 /* ------------------------------------------------------------------ */
@@ -145,12 +146,15 @@ export async function renderSegments(
       const ttsResponse: TTSResponse = await client.generateSpeech({
         text: segment.text,
         voice_id: options.voiceId,
+        audio_format: 'wav',
         language: options.language,
-        format: 'wav',
       });
 
       await writeOutputFile(result.filePath, ttsResponse.audio_data);
-      result.duration = ttsResponse.duration_seconds;
+
+      // Get accurate duration from ffprobe if available, else use API estimate
+      const probed = await probeDuration(result.filePath);
+      result.duration = probed ?? ttsResponse.duration_seconds;
 
       // Update cache
       updatedCache[segmentCacheKey(segment)] = {
