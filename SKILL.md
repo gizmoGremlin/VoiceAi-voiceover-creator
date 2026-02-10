@@ -1,23 +1,10 @@
 ---
 name: voiceai-creator-voiceover-pipeline
 description: >
-  Turn scripts into publishable voiceovers with Voice.ai TTS — creator-grade pipeline
+  Turn scripts into publishable voiceovers with Voice.ai TTS. Creator-grade pipeline
   that produces segments, chapters, captions, and review pages for YouTube, podcasts,
   and shorts. Includes ffmpeg-based audio stitching and video muxing.
 version: 0.1.0
-author: Voice.ai
-license: MIT
-tags:
-  - voice.ai
-  - tts
-  - creator
-  - voiceover
-  - youtube
-  - podcast
-  - ffmpeg
-compatibility:
-  runtime: node>=20
-  optional: ffmpeg
 ---
 
 # Voice.ai Creator Voiceover Pipeline
