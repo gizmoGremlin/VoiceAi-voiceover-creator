@@ -12,8 +12,8 @@
 
 ```bash
 # Clone the repo
-git clone <repo-url> voiceai-creator-voiceover-pipeline
-cd voiceai-creator-voiceover-pipeline
+git clone https://github.com/gizmoGremlin/VoiceAi-voiceover-creator.git
+cd VoiceAi-voiceover-creator
 
 # Install dependencies
 npm install
