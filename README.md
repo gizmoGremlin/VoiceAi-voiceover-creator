@@ -51,16 +51,24 @@ choco install ffmpeg
 ## Quick start
 
 ```bash
-# List voices
-voiceai-vo voices
+# Script + video → finished video with AI voiceover (the one-command workflow)
+voiceai-vo build \
+  --input my-script.md \
+  --voice oliver \
+  --title "My Video" \
+  --video ./my-recording.mp4 \
+  --mux
 
-# Build a voiceover (use aliases like "ellie", "oliver", "smooth")
+# Or just build the voiceover (no video)
 voiceai-vo build --input examples/youtube_script.md --voice ellie --title "My Video"
+
+# List available voices
+voiceai-vo voices
 
 # Test without an API key
 voiceai-vo build --input examples/youtube_script.md --voice ellie --title "My Video" --mock
 
-# Replace audio on a video
+# Replace audio on a video separately
 voiceai-vo replace-audio --video input.mp4 --audio out/my-video/master.wav
 ```
 

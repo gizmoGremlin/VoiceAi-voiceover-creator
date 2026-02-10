@@ -43,6 +43,31 @@ Built for creators who want studio-quality voiceovers without the studio. Powere
 
 ---
 
+## The one-command workflow
+
+Have a script and a video? Turn them into a finished video with AI voiceover in one shot:
+
+```bash
+voiceai-vo build \
+  --input my-script.md \
+  --voice oliver \
+  --title "My Video" \
+  --video ./my-recording.mp4 \
+  --mux
+```
+
+This renders the voiceover, stitches the master audio, and drops it onto your video — all in one command. Output:
+
+- `out/my-video/muxed.mp4` — your video with the new voiceover
+- `out/my-video/master.wav` — the standalone audio
+- `out/my-video/review.html` — listen and review each segment
+- `out/my-video/chapters.txt` — YouTube-ready chapter timestamps
+- `out/my-video/captions.srt` — SRT captions
+
+Use `--sync pad` if the audio is shorter than the video, or `--sync trim` to cut it to match.
+
+---
+
 ## Requirements
 
 - **Node.js 20+** — runtime
