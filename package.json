@@ -1,6 +1,6 @@
 {
   "name": "voiceai-creator-voiceover-pipeline",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Turn scripts into publishable voiceovers with Voice.ai TTS — creator-grade pipeline with segments, chapters, captions, and video muxing via ffmpeg.",
   "type": "module",
   "bin": {
