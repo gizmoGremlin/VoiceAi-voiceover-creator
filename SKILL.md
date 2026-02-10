@@ -1,7 +1,7 @@
 ---
 name: voiceai-creator-voiceover-pipeline
 description: "Turn scripts into publishable voiceovers with Voice.ai TTS, including segments, chapters, captions, and video muxing."
-version: 0.1.0
+version: 0.1.1
 env:
   - VOICE_AI_API_KEY
 setup: "npm install && npm run build && npm link"
